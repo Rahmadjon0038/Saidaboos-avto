@@ -1,0 +1,26 @@
+{
+  "name": "saidabbos",
+  "version": "1.0.0",
+  "description": "Auto e'lon backend",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "echo \"No tests yet\""
+  },
+  "keywords": [
+    "express",
+    "sqlite",
+    "swagger"
+  ],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "better-sqlite3": "^11.8.1",
+    "express": "^5.2.1",
+    "nodemon": "^3.1.14",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
+  }
+}
