@@ -14,7 +14,7 @@ const swaggerSpec = swaggerJsdoc({
       version: '1.0.0',
       description: 'Auto e\'lon platformasi uchun oddiy backend API',
     },
-    servers: [{ url: 'http://localhost:3000' }],
+    servers: [{ url: '/' }],
     components: {
       schemas: {
         Category: {
@@ -168,6 +168,10 @@ const swaggerSpec = swaggerJsdoc({
 });
 
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+app.get('/', (req, res) => {
+  res.redirect('/docs');
+});
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
