@@ -1,9 +1,7 @@
 const express = require('express');
 const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
-const { db, initDb } = require('./db');
-
-initDb();
+const { db } = require('./db');
 
 const app = express();
 app.use(express.json());
@@ -175,15 +173,15 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-app.get('/categories', (req, res) => {
-  const categories = db
-    .prepare('SELECT id, name, image_url FROM categories ORDER BY id DESC')
-    .all();
+app.get('/categories', async (req, res) => {
+  const categories = await db.all(
+    'SELECT id, name, image_url FROM categories ORDER BY id DESC'
+  );
 
   res.json(categories);
 });
 
-app.post('/categories', (req, res) => {
+app.post('/categories', async (req, res) => {
   const { name, image_url: imageUrl } = req.body;
 
   if (!name || !imageUrl) {
@@ -192,21 +190,22 @@ app.post('/categories', (req, res) => {
     });
   }
 
-  const result = db
-    .prepare('INSERT INTO categories (name, image_url) VALUES (?, ?)')
-    .run(name, imageUrl);
+  const result = await db.run(
+    'INSERT INTO categories (name, image_url) VALUES (?, ?)',
+    [name, imageUrl]
+  );
 
-  const created = db
-    .prepare('SELECT id, name, image_url FROM categories WHERE id = ?')
-    .get(result.lastInsertRowid);
+  const created = await db.get(
+    'SELECT id, name, image_url FROM categories WHERE id = ?',
+    result.lastInsertRowid
+  );
 
   return res.status(201).json(created);
 });
 
-app.get('/cars', (req, res) => {
-  const cars = db
-    .prepare(
-      `SELECT
+app.get('/cars', async (req, res) => {
+  const cars = await db.all(
+    `SELECT
         ca.id,
         ca.category_id,
         c.name AS category_name,
@@ -225,22 +224,20 @@ app.get('/cars', (req, res) => {
         WHERE car_id = ca.id
       )
       ORDER BY ca.id DESC`
-    )
-    .all();
+  );
 
   res.json(cars);
 });
 
-app.get('/cars/:id', (req, res) => {
+app.get('/cars/:id', async (req, res) => {
   const id = Number(req.params.id);
 
   if (Number.isNaN(id)) {
     return res.status(400).json({ message: 'id raqam bo\'lishi kerak' });
   }
 
-  const car = db
-    .prepare(
-      `SELECT
+  const car = await db.get(
+    `SELECT
         id,
         name,
         year,
@@ -249,18 +246,20 @@ app.get('/cars/:id', (req, res) => {
         mileage,
         engine_size
       FROM car_ads
-      WHERE id = ?`
-    )
-    .get(id);
+      WHERE id = ?`,
+    id
+  );
 
   if (!car) {
     return res.status(404).json({ message: 'Avto e\'lon topilmadi' });
   }
 
-  const images = db
-    .prepare('SELECT image_url FROM car_images WHERE car_id = ? ORDER BY sort_order ASC, id ASC')
-    .all(id)
-    .map((row) => row.image_url);
+  const images = (
+    await db.all(
+      'SELECT image_url FROM car_images WHERE car_id = ? ORDER BY sort_order ASC, id ASC',
+      id
+    )
+  ).map((row) => row.image_url);
 
   return res.json({ ...car, images });
 });
